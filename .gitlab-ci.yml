@@ -1,0 +1,56 @@
+#gitlab-ci - GitLab CI configuration file (ci/json)
+#Added workflow for the pipeline trigger condition 
+
+workflow:
+ rules:
+   - if: $CI_COMMIT_BRANCH != "main" && $CI_PIPELINE_SOURCE != "merge_request_event"
+     when: never
+   - when: always
+
+stages:
+- test
+- build
+- deploy
+
+#gitlab-ci.yml code for pipe
+#Defining the pipeline in jobs and assigning the stage to each job and also the custom gitlab runner 
+
+run_tests:
+ tags:
+ - docker
+ image: node:23-alpine
+ stage: test
+ before_script:
+  - echo "Preparing test data"
+ script:
+  - echo "Running Test"
+ after_script:
+  - echo "Cleaning Temporary files"
+
+build_image:
+ tags: 
+ - docker
+ stage: build
+ script:
+  - echo "Building Docker Image"
+  - echo "Tagging Docker Image"
+
+push_image:
+ tags: 
+ - docker
+ stage: build
+ needs: 
+ - build_image
+ before_script:
+ - echo "Authenticating with DockerHub"
+ - mkdir new_folder
+ script:
+ - echo "Pushing Image to DockerHub"
+ - rm -rf new_folder
+
+deploy_image:
+ tags: 
+ - docker
+ stage: deploy
+ script:
+ - echo "Deploy Docker Image"
